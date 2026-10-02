@@ -6,6 +6,8 @@
 #include "../assets/PlayerSounds.h"
 #include "../assets/uiTex.h"
 
+static TTF_Font *loadFontFromMemory(unsigned char *data, unsigned int size, int fontSize);
+
 SDL_Sensor *accel = nullptr; // Global
 
 bool initSDL(SDL_Window *&window, SDL_Renderer *&renderer, TTF_Font *&font,
@@ -159,16 +161,6 @@ static Mix_Chunk *loadSoundFromMemory(unsigned char *data, unsigned int size)
 	return chunk;
 }
 
-static Mix_Music *loadMusicFromMemory(unsigned char *data, unsigned int size)
-{
-	SDL_RWops *rw = SDL_RWFromConstMem(data, size);
-	if (!rw)
-		return nullptr;
-
-	Mix_Music *music = Mix_LoadMUS_RW(rw, 1); // auto-frees RWops
-	return music;
-}
-
 void loadAudio(Mix_Music *&bgm, Mix_Chunk *&shootSFX, Mix_Chunk *&moveSFX, int &engineChannel)
 {
 	// Load BGM
@@ -208,184 +200,187 @@ void loadTextures(SDL_Renderer *renderer, SDL_Texture *&borderTexture, SDL_Textu
 
 namespace Game
 {
-void engineSFX(Player &player, int engineChannel, float &currentVol, float idleVol, float moveVol, float deltaTime)
-{
-	float targetVol = (std::abs(player.vx) + std::abs(player.vy)) ? moveVol : idleVol;
-	currentVol += (targetVol - currentVol) * 7.0f * deltaTime;
-	Mix_Volume(engineChannel, (int)currentVol);
-}
-
-bool initResources(SDL_Window *&window, SDL_Renderer *&renderer, TTF_Font *&font, Mix_Music *&bgm, Mix_Chunk *&shootSFX, Mix_Chunk *&moveSFX, SDL_Texture *&borderTexture, SDL_Texture *&playerTex, SDL_Texture *&enemyTex, SDL_Texture *&hpTex, SDL_Texture *&bUITex, SDL_Texture *bulletTex[3], int &engineChannel)
-{
-	if (!initSDL(window, renderer, font, Roboto_Regular, Roboto_Regular_len, 28))
-		return false;
-
-	loadAudio(bgm, shootSFX, moveSFX, engineChannel);
-
-	loadTextures(renderer, borderTexture, playerTex, enemyTex, hpTex, bUITex, bulletTex);
-
-	return true;
-}
-
-void handleInput(SDL_Event &event, bool &running, Player &player, std::vector<Bullet> &bullets, bool &shoot, Uint32 &bulletInit, Mix_Chunk *shootSFX, int &mX, int &mY, Uint32 currentTick)
-{
-	while (SDL_PollEvent(&event))
+	void engineSFX(Player &player, int engineChannel, float &currentVol, float idleVol, float moveVol, float deltaTime)
 	{
-		if (event.type == SDL_QUIT)
-			running = false;
-
-		if (event.type == SDL_MOUSEMOTION)
-		{
-			mX = event.motion.x;
-			mY = event.motion.y;
-		}
-
-		if (event.button.button == SDL_BUTTON_LEFT && bullets.size() < MAX_BULLETS && shoot)
-		{
-			shoot = false;
-			bulletInit = currentTick;
-
-			Mix_PlayChannel(-1, shootSFX, 0);
-			player.shoot(mX, mY, bullets);
-		}
+		float targetVol = (std::abs(player.vx) + std::abs(player.vy)) ? moveVol : idleVol;
+		currentVol += (targetVol - currentVol) * ENGINE_VOLUME_ADJUSTMENT_SPEED * deltaTime;
+		Mix_Volume(engineChannel, (int)currentVol);
 	}
 
-	if (!shoot && (currentTick - bulletInit) > BULLET_DELAY / 3)
-		shoot = true;
-}
-
-bool u, d, l, r = 0;
-
-void update(float deltaTime, Player &player, std::vector<Enemy> &enemies, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, std::vector<Star> &stars, int engineChannel, float &currentVol, float idleVol, float moveVol)
-{
-	float data[3];
-
-	if (accel && SDL_SensorGetData(accel, data, 3) == 0)
+	bool initResources(SDL_Window *&window, SDL_Renderer *&renderer, TTF_Font *&font, Mix_Music *&bgm, Mix_Chunk *&shootSFX, Mix_Chunk *&moveSFX, SDL_Texture *&borderTexture, SDL_Texture *&playerTex, SDL_Texture *&enemyTex, SDL_Texture *&hpTex, SDL_Texture *&bUITex, SDL_Texture *bulletTex[3], int &engineChannel)
 	{
-		float x = data[1];
-		float y = data[0];
+		if (!initSDL(window, renderer, font, Roboto_Regular, Roboto_Regular_len, DEFAULT_FONT_SIZE))
+			return false;
 
-		if (x < -1)
-			r = true;
-		else if (x > 1)
-			l = true;
-		else
-			l = 0, r = 0;
+		loadAudio(bgm, shootSFX, moveSFX, engineChannel);
 
-		if (y < -1)
-			u = true;
-		else if (y > 1)
-			d = true;
-		else
-			u = 0, d = 0;
+		loadTextures(renderer, borderTexture, playerTex, enemyTex, hpTex, bUITex, bulletTex);
+
+		return true;
 	}
 
-	const Uint8 *keys = SDL_GetKeyboardState(NULL);
-	player.update(deltaTime,
-				  keys[SDL_SCANCODE_A]+r,
-				  keys[SDL_SCANCODE_D]+l,
-				  keys[SDL_SCANCODE_W]+u,
-				  keys[SDL_SCANCODE_S]+d);
-
-	for (auto &e : enemies)
-		e.update(deltaTime, enemyBullets);
-
-	engineSFX(player, engineChannel, currentVol, idleVol, moveVol, deltaTime);
-
-	for (auto &s : stars)
-		s.update(deltaTime);
-
-	for (auto &b : bullets)
+	void handleInput(SDL_Event &event, bool &running, Player &player, std::vector<Bullet> &bullets, bool &shoot, Uint32 &bulletInit, Mix_Chunk *shootSFX, int &mX, int &mY, Uint32 currentTick)
 	{
-		b.update(deltaTime);
-		for (auto &e : enemies)
+		while (SDL_PollEvent(&event))
 		{
-			if (SDL_HasIntersection(&b.Collider, &e.Collider))
+			if (event.type == SDL_QUIT)
+				running = false;
+
+			if (event.type == SDL_MOUSEMOTION)
 			{
-				b.alive = false;
-				e.hp--;
-				break;
+				mX = event.motion.x;
+				mY = event.motion.y;
+			}
+
+			if (event.button.button == SDL_BUTTON_LEFT && bullets.size() < MAX_BULLETS && shoot)
+			{
+				shoot = false;
+				bulletInit = currentTick;
+
+				Mix_PlayChannel(-1, shootSFX, 0);
+				player.shoot(mX, mY, bullets);
 			}
 		}
+
+		if (!shoot && (currentTick - bulletInit) > BULLET_DELAY / 3)
+			shoot = true;
 	}
 
-	for (auto &b : enemyBullets)
+	bool u, d, l, r = 0;
+
+	void update(float deltaTime, Player &player, std::vector<Enemy> &enemies, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, std::vector<Star> &stars, int engineChannel, float &currentVol, float idleVol, float moveVol)
 	{
-		b.update(deltaTime);
-		if (SDL_HasIntersection(&b.Collider, &player.Collider))
+		float data[3];
+
+		if (accel && SDL_SensorGetData(accel, data, 3) == 0)
 		{
-			b.alive = false;
-			player.hp--;
+			float x = data[1];
+			float y = data[0];
+
+			if (x < -1)
+				r = true;
+			else if (x > 1)
+				l = true;
+			else
+				l = 0, r = 0;
+
+			if (y < -1)
+				u = true;
+			else if (y > 1)
+				d = true;
+			else
+				u = 0, d = 0;
+		}
+
+		const Uint8 *keys = SDL_GetKeyboardState(NULL);
+		player.update(deltaTime,
+					  keys[SDL_SCANCODE_A] + r,
+					  keys[SDL_SCANCODE_D] + l,
+					  keys[SDL_SCANCODE_W] + u,
+					  keys[SDL_SCANCODE_S] + d);
+
+		for (auto &e : enemies)
+			e.update(deltaTime, enemyBullets);
+
+		engineSFX(player, engineChannel, currentVol, idleVol, moveVol, deltaTime);
+
+		for (auto &s : stars)
+			s.update(deltaTime);
+
+		for (auto &b : bullets)
+		{
+			b.update(deltaTime);
+			for (auto &e : enemies)
+			{
+				if (SDL_HasIntersection(&b.Collider, &e.Collider))
+				{
+					b.alive = false;
+					e.hp--;
+					break;
+				}
+			}
+		}
+
+		for (auto &b : enemyBullets)
+		{
+			b.update(deltaTime);
+			if (SDL_HasIntersection(&b.Collider, &player.Collider))
+			{
+				b.alive = false;
+				player.hp--;
+			}
+		}
+
+		enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
+									 [](Enemy &e)
+									 { return e.src.x > 224; }),
+					  enemies.end());
+
+		bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
+									 [](Bullet &b)
+									 { return !b.alive; }),
+					  bullets.end());
+
+		enemyBullets.erase(std::remove_if(enemyBullets.begin(), enemyBullets.end(),
+										  [](EnemyBullet &b)
+										  { return !b.alive; }),
+						   enemyBullets.end());
+	}
+
+	void renderSystems(SDL_Renderer *renderer, SDL_Texture *borderTexture, std::vector<Star> &stars, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, Player &player, std::vector<Enemy> &enemies, UI::FPSCounter &fpsC, UI::BulletUI &bUI, SDL_Texture *bulletTex[3], int mX, int mY, UI::PlayerHealth &hp)
+	{
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
+
+		// draw border texture
+		SDL_RenderCopy(renderer, borderTexture, NULL, NULL);
+
+		SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // yellow star
+		for (auto &s : stars)
+			s.render(renderer);
+
+		for (auto &b : bullets)
+			b.render(renderer, bulletTex);
+		for (auto &b : enemyBullets)
+			b.render(renderer, bulletTex);
+
+		// draw player
+		player.render(renderer, mX, mY);
+		for (auto &e : enemies)
+			e.render(renderer);
+
+		fpsC.render();
+		hp.render(renderer);
+		bUI.render(renderer, MAX_BULLETS - bullets.size());
+
+		SDL_RenderPresent(renderer);
+	}
+
+	void reset(Player &player, Player &replay, std::vector<Enemy> &enemies, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, SDL_Renderer *&renderer, SDL_Texture *&enemyTex)
+	{
+		if (player.hp <= 0)
+			SDL_SetRenderDrawColor(renderer, 200, 20, 0, 255);
+
+		else if (enemies.size() == 0)
+			SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
+
+		player = replay;
+
+		enemies.clear();
+		bullets.clear();
+		enemyBullets.clear();
+
+		SDL_RenderClear(renderer);
+		SDL_RenderPresent(renderer);
+		SDL_Delay(GAME_RESET_PAUSE_MS);
+
+		// Respawn enemies
+		for (int i = 0; i < ENEMY_NUMBER; i++)
+		{
+			float ex = rand() % (WIN_W - (int)ENEMY_SIZE);
+			float ey = rand() % (WIN_H - (int)ENEMY_SIZE);
+
+			enemies.emplace_back(ex, ey, enemyTex, &player);
 		}
 	}
-
-	enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
-								 [](Enemy &e) { return e.src.x > 224; }),
-				  enemies.end());
-
-	bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
-								 [](Bullet &b) { return !b.alive; }),
-				  bullets.end());
-
-	enemyBullets.erase(std::remove_if(enemyBullets.begin(), enemyBullets.end(),
-									  [](EnemyBullet &b) { return !b.alive; }),
-					   enemyBullets.end());
-}
-
-void renderSystems(SDL_Renderer *renderer, SDL_Texture *borderTexture, std::vector<Star> &stars, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, Player &player, std::vector<Enemy> &enemies, UI::FPSCounter &fpsC, UI::BulletUI &bUI, SDL_Texture *bulletTex[3], int mX, int mY, UI::PlayerHealth &hp)
-{
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-	SDL_RenderClear(renderer);
-
-	// draw border texture
-	SDL_RenderCopy(renderer, borderTexture, NULL, NULL);
-
-	SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255); // yellow star
-	for (auto &s : stars)
-		s.render(renderer);
-
-	for (auto &b : bullets)
-		b.render(renderer, bulletTex);
-	for (auto &b : enemyBullets)
-		b.render(renderer, bulletTex);
-
-	// draw player
-	player.render(renderer, mX, mY);
-	for (auto &e : enemies)
-		e.render(renderer);
-
-	fpsC.render();
-	hp.render(renderer);
-	bUI.render(renderer, MAX_BULLETS - bullets.size());
-
-	SDL_RenderPresent(renderer);
-}
-
-void reset(Player &player, Player &replay, std::vector<Enemy> &enemies, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, SDL_Renderer *&renderer, SDL_Texture *&enemyTex)
-{
-	if (player.hp <= 0)
-		SDL_SetRenderDrawColor(renderer, 200, 20, 0, 255);
-
-	else if (enemies.size() == 0)
-		SDL_SetRenderDrawColor(renderer, 0, 200, 0, 255);
-
-	player = replay;
-
-	enemies.clear();
-	bullets.clear();
-	enemyBullets.clear();
-
-	SDL_RenderClear(renderer);
-	SDL_RenderPresent(renderer);
-	SDL_Delay(300);
-
-	// Respawn enemies
-	for (int i = 0; i < ENEMY_NUMBER; i++)
-	{
-		float ex = rand() % (WIN_W - (int)ENEMY_SIZE);
-		float ey = rand() % (WIN_H - (int)ENEMY_SIZE);
-
-		enemies.emplace_back(ex, ey, enemyTex, &player);
-	}
-}
 }; // namespace Game

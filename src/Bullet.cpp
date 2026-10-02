@@ -8,8 +8,8 @@ Bullet::Bullet(float startX, float startY,
 	  y(startY),
 	  speed(s),
 	  alive(true),
-	  trailTimer(0.0f),
-	  bounces(2)
+	  bounces(2),
+	  trailTimer(0.0f)
 {
 	vx = dirx * speed;
 	vy = diry * speed;

@@ -18,7 +18,7 @@ class Entity
 	float vx, vy;
 	float ax, ay;
 	float s;
-	int hp = 50;
+	int hp = PLAYER_MAX_HEALTH;
 
 	SDL_Rect src;
 	SDL_Rect Collider;

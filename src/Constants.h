@@ -9,11 +9,19 @@ inline constexpr int bgmVol = MIX_MAX_VOLUME / 2;
 // Player
 inline constexpr float SPEED = 800.0f;
 inline constexpr float PLAYER_SIZE = 64.0f;
+inline constexpr int PLAYER_MAX_HEALTH = 50;
 inline constexpr float ENEMY_SIZE = 48.0f;
 inline constexpr int ENEMY_NUMBER = 10;	
+inline constexpr float ENEMY_ACCELERATION = 500.0f;
+inline constexpr float ENEMY_FRICTION = 0.91f;
+
+// Animation
+inline constexpr int SPRITE_FRAME_SIZE = 32;
+inline constexpr float ANIMATION_FRAME_DURATION = 0.05f;
 
 // Stars
 inline constexpr int STAR_MAX = 250;
+inline constexpr float STAR_SPEED = 100.0f;
 
 // Bullets
 inline constexpr int MAX_BULLETS = 10;
@@ -25,6 +33,13 @@ inline constexpr float BULLET_SPEED = 1000.0f;
 inline constexpr int AURA = 3;
 inline constexpr float TRAIL_INTERVAL = 0.01;
 inline constexpr int TRAIL_SIZE = 25;
+inline constexpr float ENGINE_VOLUME_ADJUSTMENT_SPEED = 7.0f;
+
+// UI
+inline constexpr int DEFAULT_FONT_SIZE = 28;
+inline constexpr int HEALTH_PER_ICON = 5;
+inline constexpr int HEALTH_ICON_SOURCE_SIZE = 16;
+inline constexpr int GAME_RESET_PAUSE_MS = 300;
 
 // Window
 inline constexpr int WIN_H = 900;

@@ -4,7 +4,7 @@
 #include <algorithm>
 
 Entity::Entity(float startX, float startY, SDL_Texture *tex)
-	: x(startX), y(startY), vx(0), vy(0), ax(0), ay(0), texture(tex), animTimer(0) { src = {0, 0, 32, 32}; }
+	: animTimer(0), texture(tex), x(startX), y(startY), vx(0), vy(0), ax(0), ay(0) { src = {0, 0, SPRITE_FRAME_SIZE, SPRITE_FRAME_SIZE}; }
 
 void Entity::setSize(float size)
 {
@@ -23,7 +23,7 @@ Enemy::Enemy(float startX, float startY, SDL_Texture *tex, Player *player)
 {
 	hp = 1;
 	bulletTimer = 0.0f;
-    
+
 	setSize(ENEMY_SIZE);
 	dx = p->x + p->s / 2.0f - x - s / 2.0f;
 	dy = p->y + p->s / 2.0f - y - s / 2.0f;
@@ -31,11 +31,11 @@ Enemy::Enemy(float startX, float startY, SDL_Texture *tex, Player *player)
 
 void Player::update(float dt, bool left, bool right, bool up, bool down)
 {
-	if (hp<=0)
+	if (hp <= 0)
 	{
 		animTimer += dt;
-		if (animTimer >= 0.05f)
-			src.x += 32, animTimer = 0.0f;
+		if (animTimer >= ANIMATION_FRAME_DURATION)
+			src.x += SPRITE_FRAME_SIZE, animTimer = 0.0f;
 		return;
 	}
 
@@ -50,8 +50,8 @@ void Player::update(float dt, bool left, bool right, bool up, bool down)
 		vy = -(up - down) * SPEED;
 	}
 
-	vx += ax * dt;
-	vy += ay * dt;
+	// vx += ax * dt;
+	// vy += ay * dt;
 
 	x += vx * dt;
 	y += vy * dt;
@@ -89,11 +89,11 @@ void Player::shoot(float mX, float mY, std::vector<Bullet> &b)
 void Enemy::update(float dt, std::vector<EnemyBullet> &b)
 {
 	ay = 0, ax = 0;
-	if (hp <= 0) //dead
+	if (hp <= 0) // dead
 	{
 		animTimer += dt;
-		if (animTimer >= 0.05f)
-			src.x += 32, animTimer = 0.0f;
+		if (animTimer >= ANIMATION_FRAME_DURATION)
+			src.x += SPRITE_FRAME_SIZE, animTimer = 0.0f;
 		return;
 	}
 
@@ -116,13 +116,13 @@ void Enemy::update(float dt, std::vector<EnemyBullet> &b)
 	dy = p->y + p->s / 2.0f - y - s / 2.0f;
 	d = std::sqrt(dx * dx + dy * dy);
 
-	float c = 500;
+	float c = ENEMY_ACCELERATION;
 
 	ay += c * (dx / d);
 	ax += -c * (dy / d);
 
-	vx *= std::pow(0.91, dt);
-	vy *= std::pow(0.91, dt);
+	vx *= std::pow(ENEMY_FRICTION, dt);
+	vy *= std::pow(ENEMY_FRICTION, dt);
 
 	vx += ax * dt;
 	vy += ay * dt;

@@ -4,7 +4,7 @@
 #include <SDL2/SDL_mixer.h>
 
 #ifdef _WIN32
-#include <windows.h>
+#include <Windows.h>
 #endif
 
 #include <cstdlib> // rand()
@@ -19,6 +19,9 @@
 
 int main(int argc, char *argv[])
 {
+	(void)argc;
+	(void)argv;
+
 #ifdef _WIN32
 	SetProcessDPIAware();
 #endif
