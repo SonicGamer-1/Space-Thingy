@@ -1,0 +1,41 @@
+# Build and Binary output directories
+build/
+bin/
+
+# Compiled Object & Executable files
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.a
+*.lib
+*.out
+*.app
+
+# Debug / PDB files
+*.pdb
+*.ilk
+*.idb
+
+# IDE & Editor specific files
+.vscode/
+.idea/
+.vs/
+*.sln
+*.vcxproj
+*.vcxproj.user
+*.vcxproj.filters
+
+# OS Generated files
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Temporary & Log files
+*.log
+*.tmp
+*~
+*.swp
+*.txt
