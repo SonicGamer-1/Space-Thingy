@@ -83,6 +83,8 @@ void Player::shoot(float mX, float mY, std::vector<Bullet> &b)
 
 	float d = std::sqrt(dx * dx + dy * dy);
 
+	if (d == 0)
+		return;
 	b.emplace_back(x + s / 2, y + s / 2, dx / d, dy / d);
 }
 

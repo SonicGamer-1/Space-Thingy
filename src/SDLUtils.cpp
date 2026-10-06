@@ -68,6 +68,8 @@ void cleanupSDL(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font, SDL_
 	for (int i = 0; i < 3; i++)
 		SDL_DestroyTexture(bulletTex[i]);
 
+	SDL_SensorClose(accel);
+
 	SDL_DestroyRenderer(renderer);
 	SDL_DestroyWindow(window);
 
@@ -81,7 +83,7 @@ void cleanupSDL(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font, SDL_
 	SDL_Quit();
 }
 
-SDL_Texture *CreateBorderTexture(SDL_Renderer *renderer, int width, int height, int thickness)
+SDL_Texture *createBorderTexture(SDL_Renderer *renderer, int width, int height, int thickness)
 {
 	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
 	SDL_SetRenderTarget(renderer, texture);
@@ -186,7 +188,7 @@ void loadAudio(Mix_Music *&bgm, Mix_Chunk *&shootSFX, Mix_Chunk *&moveSFX, int &
 
 void loadTextures(SDL_Renderer *renderer, SDL_Texture *&borderTexture, SDL_Texture *&playerTex, SDL_Texture *&enemyTex, SDL_Texture *&hpTex, SDL_Texture *&bUITex, SDL_Texture *bulletTex[3])
 {
-	borderTexture = CreateBorderTexture(renderer, WIN_W, WIN_H, BORDER_WIDTH);
+	borderTexture = createBorderTexture(renderer, WIN_W, WIN_H, BORDER_WIDTH);
 	playerTex = loadTextureFromMemory(renderer, ship, ship_len);
 	enemyTex = loadTextureFromMemory(renderer, enemyttt, enemy_len);
 
@@ -240,16 +242,16 @@ namespace Game
 				Mix_PlayChannel(-1, shootSFX, 0);
 				player.shoot(mX, mY, bullets);
 			}
+
+			if (!shoot && (currentTick - bulletInit) > BULLET_DELAY / 3)
+				shoot = true;
 		}
-
-		if (!shoot && (currentTick - bulletInit) > BULLET_DELAY / 3)
-			shoot = true;
 	}
-
-	bool u, d, l, r = 0;
 
 	void update(float deltaTime, Player &player, std::vector<Enemy> &enemies, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, std::vector<Star> &stars, int engineChannel, float &currentVol, float idleVol, float moveVol)
 	{
+		bool u = 0, d = 0, l = 0, r = 0;
+
 		float data[3];
 
 		if (accel && SDL_SensorGetData(accel, data, 3) == 0)

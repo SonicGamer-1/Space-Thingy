@@ -42,16 +42,12 @@ struct Star
 	}
 };
 
-SDL_Texture *CreateBorderTexture(SDL_Renderer *renderer, int width, int height, int thickness);
-SDL_Texture *createBulletTexture(SDL_Renderer *renderer, Uint8 r, Uint8 g, Uint8 b);
-
-SDL_Texture *CreateBorderTexture(SDL_Renderer *renderer, int width, int height, int thickness);
-SDL_Texture *createBulletTexture(SDL_Renderer *renderer, Uint8 r, Uint8 g, Uint8 b);
-
 bool initSDL(SDL_Window *&window, SDL_Renderer *&renderer, TTF_Font *&font, unsigned char *fontData, unsigned int fontDataLen, int fontSize);
 void loadAudio(Mix_Music *&bgm, Mix_Chunk *&shootSFX, Mix_Chunk *&moveSFX, int &engineChannel);
 void loadTextures(SDL_Renderer *renderer, SDL_Texture *&borderTexture, SDL_Texture *&playerTex, SDL_Texture *&enemyTex, SDL_Texture *&hpTex, SDL_Texture *&bUITex, SDL_Texture *bulletTex[3]);
 void cleanupSDL(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font, SDL_Texture *borderTexture, SDL_Texture *playerTex, SDL_Texture *hpTex, SDL_Texture *bUITex, SDL_Texture *bulletTex[3], Mix_Chunk *shootSFX, Mix_Music *bgm);
+
+SDL_Texture *createBorderTexture(SDL_Renderer *renderer, int width, int height, int thickness);
 
 namespace Game
 {

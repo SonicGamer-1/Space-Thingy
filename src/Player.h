@@ -9,11 +9,11 @@ class EnemyBullet; // forward declaration
 
 class Entity
 {
-  protected:
+protected:
 	float animTimer;
 	SDL_Texture *texture;
 
-  public:
+public:
 	float x, y;
 	float vx, vy;
 	float ax, ay;
@@ -22,15 +22,15 @@ class Entity
 
 	SDL_Rect src;
 	SDL_Rect Collider;
-	
-	Entity(float startX, float startY, SDL_Texture* tex);
+
+	Entity(float startX, float startY, SDL_Texture *tex);
 
 	void setSize(float size);
 };
 
 class Player : public Entity
 {
-  public:
+public:
 	Player(float startX, float startY, SDL_Texture *tex);
 
 	void update(float dt, bool left, bool right, bool up, bool down);
@@ -44,7 +44,7 @@ class Enemy : public Entity
 	float dx, dy, d;
 	float bulletTimer;
 
-  public:
+public:
 	Enemy(float startX, float startY, SDL_Texture *tex, Player *player);
 
 	void update(float dt, std::vector<EnemyBullet> &b);
