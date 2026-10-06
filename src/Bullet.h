@@ -6,10 +6,10 @@
 
 class Bullet
 {
-  protected:
+protected:
 	int texSize = BULLET_SIZE + 2 * AURA;
 
-  public:
+public:
 	struct TrailSegment
 	{
 		float x, y;
@@ -20,6 +20,7 @@ class Bullet
 	float speed;
 	bool alive;
 	int bounces;
+	int textureIndex = 0;
 
 	SDL_Rect Collider;
 
@@ -40,6 +41,6 @@ class Bullet
 
 class EnemyBullet : public Bullet
 {
-  public:
+public:
 	EnemyBullet(float startX, float startY, float dirx, float diry, float s = BULLET_SPEED);
 };

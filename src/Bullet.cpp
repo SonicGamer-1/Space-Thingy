@@ -8,16 +8,18 @@ Bullet::Bullet(float startX, float startY,
 	  y(startY),
 	  speed(s),
 	  alive(true),
-	  bounces(2),
+	  bounces(1),
 	  trailTimer(0.0f)
 {
 	vx = dirx * speed;
 	vy = diry * speed;
+	textureIndex = 1;
 }
 EnemyBullet::EnemyBullet(float startX, float startY, float dirx, float diry, float s)
 	: Bullet(startX, startY, dirx, diry, s) // call base constructor
 {
 	bounces = 0; // enemy bullets have fewer bounces
+	textureIndex = 0;
 }
 
 void Bullet::update(float dt)
@@ -76,11 +78,11 @@ void Bullet::render(SDL_Renderer *renderer, SDL_Texture *bulletTex[3])
 
 		SDL_Rect dst = {(int)seg.x - scaledSize / 2, (int)seg.y - scaledSize / 2, scaledSize, scaledSize};
 
-		SDL_RenderCopy(renderer, bulletTex[2 - bounces], NULL, &dst);
+		SDL_RenderCopy(renderer, bulletTex[2 - bounces + textureIndex], NULL, &dst);
 	}
 
 	SDL_SetTextureAlphaMod(
 		bulletTex[2 - bounces], 255);
 
-	SDL_RenderCopy(renderer, bulletTex[2 - bounces], NULL, &Collider);
+	SDL_RenderCopy(renderer, bulletTex[2 - bounces + textureIndex], NULL, &Collider);
 }
