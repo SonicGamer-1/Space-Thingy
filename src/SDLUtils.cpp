@@ -85,19 +85,33 @@ void cleanupSDL(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font, SDL_
 
 SDL_Texture *createBorderTexture(SDL_Renderer *renderer, int width, int height, int thickness)
 {
-	SDL_Texture *texture = SDL_CreateTexture(renderer, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET, width, height);
-	SDL_SetRenderTarget(renderer, texture);
-	SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-	SDL_RenderClear(renderer);
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_Surface *surf = SDL_CreateRGBSurface(0, width, height, 32,
+											 0x00FF0000, 0x0000FF00, 0x000000FF, 0xFF000000);
+	if (!surf)
+		return nullptr;
 
+	SDL_FillRect(surf, nullptr, SDL_MapRGBA(surf->format, 0, 0, 0, 0)); // transparent
+
+	Uint32 white = SDL_MapRGBA(surf->format, 255, 255, 255, 255);
 	for (int i = 0; i < thickness; i++)
 	{
-		SDL_Rect border = {i, i, width - i * 2, height - i * 2};
-		SDL_RenderDrawRect(renderer, &border);
+		SDL_Rect r;
+		r = {i, i, width - i * 2, 1};
+		SDL_FillRect(surf, &r, white); // top
+		r = {i, height - i - 1, width - i * 2, 1};
+		SDL_FillRect(surf, &r, white); // bottom
+		r = {i, i, 1, height - i * 2};
+		SDL_FillRect(surf, &r, white); // left
+		r = {width - i - 1, i, 1, height - i * 2};
+		SDL_FillRect(surf, &r, white); // right
 	}
 
-	SDL_SetRenderTarget(renderer, NULL);
+	SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surf);
+	SDL_FreeSurface(surf);
+
+	if (texture)
+		SDL_SetTextureBlendMode(texture, SDL_BLENDMODE_BLEND);
+
 	return texture;
 }
 
