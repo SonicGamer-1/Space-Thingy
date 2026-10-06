@@ -94,15 +94,6 @@ int main(int argc, char *argv[])
 		fpsC.update();
 
 		Game::handleInput(event, running, player, bullets, shoot, bulletInit, shootSFX, mX, mY, currentTick);
-		if (event.type == SDL_WINDOWEVENT)
-		{
-			switch (event.window.event)
-			{
-			case SDL_WINDOWEVENT_RESIZED:
-				SDL_DestroyTexture(borderTexture);
-				borderTexture = createBorderTexture(renderer, event.window.data1, event.window.data2, BORDER_WIDTH);
-			}
-		}
 
 		Game::update(deltaTime, player, enemies, bullets, enemyBullets, stars,
 					 engineChannel, currentVol, idleVol, moveVol);

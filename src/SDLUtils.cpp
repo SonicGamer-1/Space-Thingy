@@ -242,10 +242,10 @@ namespace Game
 				Mix_PlayChannel(-1, shootSFX, 0);
 				player.shoot(mX, mY, bullets);
 			}
-
-			if (!shoot && (currentTick - bulletInit) > BULLET_DELAY / 3)
-				shoot = true;
 		}
+
+		if (!shoot && (currentTick - bulletInit) > BULLET_DELAY / 3)
+			shoot = true;
 	}
 
 	void update(float deltaTime, Player &player, std::vector<Enemy> &enemies, std::vector<Bullet> &bullets, std::vector<EnemyBullet> &enemyBullets, std::vector<Star> &stars, int engineChannel, float &currentVol, float idleVol, float moveVol)
