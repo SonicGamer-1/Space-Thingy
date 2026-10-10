@@ -67,7 +67,7 @@ int main(int argc, char *argv[]) {
   std::vector<Bullet> bullets;
   std::vector<EnemyBullet> enemyBullets;
   std::vector<Star> stars;
-  bullets.reserve(MAX_BULLETS);
+  bullets.reserve(PLAYER_MAX_BULLETS);
   enemyBullets.reserve(ENEMY_NUMBER);
   stars.reserve(STAR_MAX);
   bool shoot = true;

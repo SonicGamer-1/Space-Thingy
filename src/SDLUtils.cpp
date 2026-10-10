@@ -260,7 +260,7 @@ void handleInput(SDL_Event &event, bool &running, Player &player,
     }
 
     if (event.button.button == SDL_BUTTON_LEFT &&
-        bullets.size() < MAX_BULLETS && shoot) {
+        bullets.size() < PLAYER_MAX_BULLETS && shoot) {
       shoot = false;
       bulletInit = currentTick;
 
@@ -384,7 +384,7 @@ void renderSystems(SDL_Renderer *renderer, SDL_Texture *borderTexture,
 
   fpsC.render();
   hp.render(renderer);
-  bUI.render(renderer, MAX_BULLETS - bullets.size());
+  bUI.render(renderer, PLAYER_MAX_BULLETS - bullets.size());
 
   SDL_RenderPresent(renderer);
 }
