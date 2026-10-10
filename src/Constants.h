@@ -11,7 +11,7 @@ inline constexpr float SPEED = 800.0f;
 inline constexpr float PLAYER_SIZE = 64.0f;
 inline constexpr int PLAYER_MAX_HEALTH = 50;
 inline constexpr float ENEMY_SIZE = 48.0f;
-inline constexpr int ENEMY_NUMBER = 10;	
+inline constexpr int ENEMY_NUMBER = 10;
 inline constexpr float ENEMY_ACCELERATION = 500.0f;
 inline constexpr float ENEMY_FRICTION = 0.91f;
 
@@ -25,6 +25,8 @@ inline constexpr float STAR_SPEED = 100.0f;
 
 // Bullets
 inline constexpr int MAX_BULLETS = 10;
+inline constexpr int PLAYER_BOUNCES = 2;
+inline constexpr int ENEMY_BOUNCES = 1;
 inline constexpr int BULLET_SIZE = 6;
 inline constexpr int BULLET_DELAY = 150;
 inline constexpr float BULLET_SPEED = 1000.0f;

@@ -1,88 +1,80 @@
 #include "Bullet.h"
+#include <algorithm>
 #include <cmath>
 
-Bullet::Bullet(float startX, float startY,
-			   float dirx, float diry,
-			   float s)
-	: x(startX),
-	  y(startY),
-	  speed(s),
-	  alive(true),
-	  bounces(1),
-	  trailTimer(0.0f)
-{
-	vx = dirx * speed;
-	vy = diry * speed;
-	textureIndex = 1;
+Bullet::Bullet(float startX, float startY, float dirx, float diry, float s)
+    : x(startX), y(startY), speed(s), alive(true), bounces(PLAYER_BOUNCES),
+      trailTimer(0.0f) {
+  vx = dirx * speed;
+  vy = diry * speed;
+  textureIndex = 0;
 }
-EnemyBullet::EnemyBullet(float startX, float startY, float dirx, float diry, float s)
-	: Bullet(startX, startY, dirx, diry, s) // call base constructor
+EnemyBullet::EnemyBullet(float startX, float startY, float dirx, float diry,
+                         float s)
+    : Bullet(startX, startY, dirx, diry, s) // call base constructor
 {
-	bounces = 0; // enemy bullets have fewer bounces
-	textureIndex = 0;
+  bounces = ENEMY_BOUNCES; // enemy bullets have fewer bounces
+  textureIndex = 1;
 }
 
-void Bullet::update(float dt)
-{
-	if (!alive)
-		return;
+void Bullet::update(float dt) {
+  if (!alive)
+    return;
 
-	x += vx * dt;
-	y += vy * dt;
+  x += vx * dt;
+  y += vy * dt;
 
-	float r = BULLET_SIZE / 2.0f + AURA;
+  float r = BULLET_SIZE / 2.0f + AURA;
 
-	if (x - r < BORDER_WIDTH)
-		x = BORDER_WIDTH + r, vx *= -1, bounces--;
-	if (x + r > WIN_W - BORDER_WIDTH)
-		x = WIN_W - BORDER_WIDTH - r, vx *= -1, bounces--;
-	if (y - r < BORDER_WIDTH)
-		y = BORDER_WIDTH + r, vy *= -1, bounces--;
-	if (y + r > WIN_H - BORDER_WIDTH)
-		y = WIN_H - BORDER_WIDTH - r, vy *= -1, bounces--;
+  if (x - r < BORDER_WIDTH)
+    x = BORDER_WIDTH + r, vx *= -1, bounces--;
+  if (x + r > WIN_W - BORDER_WIDTH)
+    x = WIN_W - BORDER_WIDTH - r, vx *= -1, bounces--;
+  if (y - r < BORDER_WIDTH)
+    y = BORDER_WIDTH + r, vy *= -1, bounces--;
+  if (y + r > WIN_H - BORDER_WIDTH)
+    y = WIN_H - BORDER_WIDTH - r, vy *= -1, bounces--;
 
-	Collider = {(int)x - AURA - (int)(BULLET_SIZE / 2.0), (int)y - AURA - (int)(BULLET_SIZE / 2.0), texSize, texSize};
+  Collider = {(int)x - AURA - (int)(BULLET_SIZE / 2.0),
+              (int)y - AURA - (int)(BULLET_SIZE / 2.0), texSize, texSize};
 
-	if (bounces < 0)
-		alive = false;
+  if (bounces <= 0)
+    alive = false;
 
-	trailTimer += dt;
-	while (trailTimer >= TRAIL_INTERVAL)
-	{
-		trailTimer -= TRAIL_INTERVAL;
-		trail.push_back({x, y});
+  trailTimer += dt;
+  while (trailTimer >= TRAIL_INTERVAL) {
+    trailTimer -= TRAIL_INTERVAL;
+    trail.push_back({x, y});
 
-		while (trail.size() >= TRAIL_SIZE)
-			trail.erase(trail.begin());
-	}
+    while (trail.size() >= TRAIL_SIZE)
+      trail.erase(trail.begin());
+  }
 }
 
-void Bullet::render(SDL_Renderer *renderer, SDL_Texture *bulletTex[3])
-{
-	for (size_t i = 0; i < trail.size(); i++)
-	{
-		auto &seg = trail[i];
+void Bullet::render(SDL_Renderer *renderer, SDL_Texture *bulletTex[3]) {
+  int texture = std::clamp(2 - bounces + textureIndex, 0, 2);
 
-		float t = trail.size() > 1
-					  ? static_cast<float>(i) / (trail.size() - 1)
-					  : 1.0f;
+  for (size_t i = 0; i < trail.size(); i++) {
+    auto &seg = trail[i];
 
-		float expT = pow(t, 2.5f);
+    float t =
+        trail.size() > 1 ? static_cast<float>(i) / (trail.size() - 1) : 1.0f;
 
-		Uint8 alpha = static_cast<Uint8>(255 * expT);
-		SDL_SetTextureAlphaMod(bulletTex[2 - bounces], alpha);
+    float expT = pow(t, 2.5f);
 
-		float scale = 0.2f + 0.8f * expT;
-		int scaledSize =
-			static_cast<int>(texSize * scale);
+    Uint8 alpha = static_cast<Uint8>(255 * expT);
+    SDL_SetTextureAlphaMod(bulletTex[texture], alpha);
 
-		SDL_Rect dst = {(int)seg.x - scaledSize / 2, (int)seg.y - scaledSize / 2, scaledSize, scaledSize};
+    float scale = 0.2f + 0.8f * expT;
+    int scaledSize = static_cast<int>(texSize * scale);
 
-		SDL_RenderCopy(renderer, bulletTex[2 - bounces + textureIndex], NULL, &dst);
-	}
+    SDL_Rect dst = {(int)seg.x - scaledSize / 2, (int)seg.y - scaledSize / 2,
+                    scaledSize, scaledSize};
 
-	SDL_SetTextureAlphaMod(
-		bulletTex[2 - bounces], 255);
+    SDL_RenderCopy(renderer, bulletTex[texture], NULL, &dst);
+  }
 
-	SDL_RenderCopy(renderer, bulletTex[2 - bounces + textureIndex], NULL, &Collider);
+  SDL_SetTextureAlphaMod(bulletTex[texture], 255);
+
+  SDL_RenderCopy(renderer, bulletTex[texture], NULL, &Collider);
 }

@@ -1,56 +1,66 @@
-# Compiler and Flags
-CXX      := g++
-CXXFLAGS := -Wall -Wextra -std=c++17 -Isrc -Iassets -D_WIN32_WINNT=0x0601
-LDFLAGS  := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -mwindows
+CXX      ?= g++
+CPPFLAGS := -Isrc -Iassets
+CXXFLAGS := -Wall -Wextra -std=c++17
 
-# Directories
-SRC_DIR   := src
-BUILD_DIR := build
-BIN_DIR   := bin
-ASSETS_DIR:= assets
-
-# Target Output Executable
-TARGET    := $(BIN_DIR)/game.exe
-
-# Source and Object Files
-SRCS := $(wildcard $(SRC_DIR)/*.cpp)
-OBJS := $(patsubst $(SRC_DIR)/%.cpp,$(BUILD_DIR)/%.o,$(SRCS))
-
-# OS detection for directory and shell operations
 ifeq ($(OS),Windows_NT)
-    MKDIR = if not exist "$(subst /,\,$(1))" mkdir "$(subst /,\,$(1))"
-    RMDIR = if exist "$(subst /,\,$(1))" rmdir /S /Q "$(subst /,\,$(1))"
+HOST_PLATFORM := windows
 else
-    MKDIR = mkdir -p $(1)
-    RMDIR = rm -rf $(1)
+HOST_PLATFORM := linux
 endif
 
-# Default Target
+PLATFORM ?= $(HOST_PLATFORM)
+
+ifeq ($(PLATFORM),windows)
+TARGET_EXT := .exe
+PLATFORM_FLAGS := -D_WIN32_WINNT=0x0601
+SDL_LIBS := -lmingw32 -lSDL2main -lSDL2 -lSDL2_image -lSDL2_ttf -lSDL2_mixer -mwindows
+MKDIR = if not exist "$(subst /,\,$@)" mkdir "$(subst /,\,$@)"
+RUN = $(TARGET)
+else ifeq ($(PLATFORM),linux)
+TARGET_EXT :=
+PLATFORM_FLAGS :=
+SDL_CFLAGS := $(shell pkg-config --cflags sdl2 SDL2_image SDL2_ttf SDL2_mixer)
+SDL_LIBS := $(shell pkg-config --libs sdl2 SDL2_image SDL2_ttf SDL2_mixer)
+MKDIR = mkdir -p "$@"
+RUN = ./$(TARGET)
+else
+$(error Unsupported PLATFORM '$(PLATFORM)'; use PLATFORM=windows or PLATFORM=linux)
+endif
+
+BUILD_DIR := build/$(PLATFORM)
+TARGET := bin/game$(TARGET_EXT)
+SOURCES := $(wildcard src/*.cpp)
+OBJECTS := $(patsubst src/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES))
+
 all: $(TARGET)
 
-# Link Binary
-$(TARGET): $(OBJS) | $(BIN_DIR)
-	$(CXX) $(OBJS) -o $@ $(LDFLAGS)
+windows:
+	$(MAKE) PLATFORM=windows all
 
-# Compile C++ Source Files into Object Files
-$(BUILD_DIR)/%.o: $(SRC_DIR)/%.cpp | $(BUILD_DIR)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+linux:
+	$(MAKE) PLATFORM=linux all
 
-# Ensure Directories Exist
+$(TARGET): $(OBJECTS) | bin
+	$(CXX) $^ -o $@ $(LDFLAGS) $(SDL_LIBS)
+
+$(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
+	$(CXX) $(CPPFLAGS) $(CXXFLAGS) $(PLATFORM_FLAGS) $(SDL_CFLAGS) -c $< -o $@
+
+bin:
+	$(MKDIR)
+
 $(BUILD_DIR):
-	@$(call MKDIR,$(BUILD_DIR))
+	$(MKDIR)
 
-$(BIN_DIR):
-	@$(call MKDIR,$(BIN_DIR))
-
-# Clean Build Artifacts
-clean:
-	@$(call RMDIR,$(BUILD_DIR))
-	@$(call RMDIR,$(BIN_DIR))
-	@echo Cleaned build and bin folders.
-
-# Run the compiled executable
 run: all
-	$(TARGET)
+	$(RUN)
 
-.PHONY: all clean run
+clean:
+ifeq ($(OS),Windows_NT)
+	if exist build rmdir /S /Q build
+	if exist bin rmdir /S /Q bin
+else
+	rm -rf build bin
+endif
+
+.PHONY: all windows linux run clean
