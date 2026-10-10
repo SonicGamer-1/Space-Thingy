@@ -33,17 +33,19 @@ inline constexpr float STAR_SPEED = 100.0f;
 
 // Combat
 inline constexpr int PLAYER_MAX_BULLETS = 10;
-inline constexpr int PLAYER_BOUNCES = 2;
+inline constexpr int PLAYER_BOUNCES = 1;
 inline constexpr int PLAYER_SHOOT_COUNT = 3;
 inline constexpr int PLAYER_BULLET_DAMAGE = 1;
-inline constexpr int ENEMY_BOUNCES = 1;
+
+inline constexpr int ENEMY_BOUNCES = 0;
 inline constexpr int ENEMY_SHOOT_COUNT = 1;
-inline constexpr int ENEMY_BULLET_DAMAGE = 1;
+inline constexpr int ENEMY_BULLET_DAMAGE = 2;
 
 // Bullet effects
 inline constexpr int BULLET_SIZE = 6;
 inline constexpr int BULLET_DELAY = 150;
 inline constexpr float BULLET_SPEED = 1000.0f;
+
 inline constexpr int AURA = 3;
 inline constexpr float TRAIL_INTERVAL = 0.01;
 inline constexpr int TRAIL_SIZE = 25;

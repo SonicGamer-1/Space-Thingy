@@ -7,14 +7,14 @@ Bullet::Bullet(float startX, float startY, float dirx, float diry, float s)
       trailTimer(0.0f) {
   vx = dirx * speed;
   vy = diry * speed;
-  textureIndex = 0;
+  textureIndex = 1;
 }
 EnemyBullet::EnemyBullet(float startX, float startY, float dirx, float diry,
                          float s)
     : Bullet(startX, startY, dirx, diry, s) // call base constructor
 {
   bounces = ENEMY_BOUNCES; // enemy bullets have fewer bounces
-  textureIndex = 1;
+  textureIndex = 0;
 }
 
 void Bullet::update(float dt) {
@@ -38,7 +38,7 @@ void Bullet::update(float dt) {
   Collider = {(int)x - AURA - (int)(BULLET_SIZE / 2.0),
               (int)y - AURA - (int)(BULLET_SIZE / 2.0), texSize, texSize};
 
-  if (bounces <= 0)
+  if (bounces < 0)
     alive = false;
 
   trailTimer += dt;
@@ -52,7 +52,7 @@ void Bullet::update(float dt) {
 }
 
 void Bullet::render(SDL_Renderer *renderer, SDL_Texture *bulletTex[3]) {
-  int texture = std::clamp(2 - bounces + textureIndex, 0, 2);
+  int texture = std::clamp(2 - bounces - textureIndex, 0, 2);
 
   for (size_t i = 0; i < trail.size(); i++) {
     auto &seg = trail[i];
