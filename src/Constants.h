@@ -15,7 +15,7 @@ inline constexpr int BORDER_WIDTH = 5;
 // Player
 inline constexpr float SPEED = 800.0f;
 inline constexpr float PLAYER_SIZE = 64.0f;
-inline constexpr int PLAYER_MAX_HEALTH = 50;
+inline constexpr int PLAYER_MAX_HEALTH = 20;
 
 // Enemies
 inline constexpr float ENEMY_SIZE = 48.0f;
@@ -47,8 +47,8 @@ inline constexpr int BULLET_DELAY = 150;
 inline constexpr float BULLET_SPEED = 1000.0f;
 
 inline constexpr int AURA = 3;
-inline constexpr float TRAIL_INTERVAL = 0.01;
-inline constexpr int TRAIL_SIZE = 25;
+inline constexpr float TRAIL_INTERVAL = 0.003;
+inline constexpr int TRAIL_SIZE = 250;
 inline constexpr float TRAIL_ALPHA_POWER = 2.5f;
 inline constexpr float TRAIL_MIN_SCALE = 0.2f;
 inline constexpr float TRAIL_SCALE_RANGE = 0.8f;
