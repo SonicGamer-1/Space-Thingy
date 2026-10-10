@@ -35,6 +35,9 @@ inline constexpr float BULLET_SPEED = 1000.0f;
 inline constexpr int AURA = 3;
 inline constexpr float TRAIL_INTERVAL = 0.01;
 inline constexpr int TRAIL_SIZE = 25;
+inline constexpr float TRAIL_ALPHA_POWER = 2.5f;
+inline constexpr float TRAIL_MIN_SCALE = 0.2f;
+inline constexpr float TRAIL_SCALE_RANGE = 0.8f;
 inline constexpr float ENGINE_VOLUME_ADJUSTMENT_SPEED = 7.0f;
 
 // UI

@@ -47,7 +47,7 @@ void Bullet::update(float dt) {
     trail.push_back({x, y});
 
     while (trail.size() >= TRAIL_SIZE)
-      trail.erase(trail.begin());
+      trail.pop_front();
   }
 }
 
@@ -60,12 +60,12 @@ void Bullet::render(SDL_Renderer *renderer, SDL_Texture *bulletTex[3]) {
     float t =
         trail.size() > 1 ? static_cast<float>(i) / (trail.size() - 1) : 1.0f;
 
-    float expT = pow(t, 2.5f);
+    float expT = pow(t, TRAIL_ALPHA_POWER);
 
     Uint8 alpha = static_cast<Uint8>(255 * expT);
     SDL_SetTextureAlphaMod(bulletTex[texture], alpha);
 
-    float scale = 0.2f + 0.8f * expT;
+    float scale = TRAIL_MIN_SCALE + TRAIL_SCALE_RANGE * expT;
     int scaledSize = static_cast<int>(texSize * scale);
 
     SDL_Rect dst = {(int)seg.x - scaledSize / 2, (int)seg.y - scaledSize / 2,

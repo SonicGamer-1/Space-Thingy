@@ -48,6 +48,7 @@ int main(int argc, char *argv[]) {
   Player replay = player;
 
   std::vector<Enemy> enemies;
+  enemies.reserve(ENEMY_NUMBER);
   for (int i = 0; i < ENEMY_NUMBER; i++) {
     float ex = rand() % (WIN_W - (int)ENEMY_SIZE); // X within screen bounds
     float ey = rand() % (WIN_H - (int)ENEMY_SIZE); // Y within screen bounds
@@ -66,6 +67,9 @@ int main(int argc, char *argv[]) {
   std::vector<Bullet> bullets;
   std::vector<EnemyBullet> enemyBullets;
   std::vector<Star> stars;
+  bullets.reserve(MAX_BULLETS);
+  enemyBullets.reserve(ENEMY_NUMBER);
+  stars.reserve(STAR_MAX);
   bool shoot = true;
   Uint32 bulletInit;
 

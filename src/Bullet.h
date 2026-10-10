@@ -2,7 +2,7 @@
 
 #include "Constants.h"
 #include <SDL2/SDL.h>
-#include <vector>
+#include <deque>
 
 class Bullet
 {
@@ -24,7 +24,7 @@ public:
 
 	SDL_Rect Collider;
 
-	std::vector<TrailSegment> trail;
+	std::deque<TrailSegment> trail;
 	float trailTimer;
 
 	Bullet() : x(0), y(0), vx(0), vy(0), alive(false) {}
