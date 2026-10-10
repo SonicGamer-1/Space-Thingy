@@ -29,6 +29,10 @@ inline constexpr int PLAYER_BOUNCES = 2;
 inline constexpr int ENEMY_BOUNCES = 1;
 inline constexpr int BULLET_SIZE = 6;
 inline constexpr int BULLET_DELAY = 150;
+inline constexpr int ENEMY_SHOOT_COUNT = 1;
+inline constexpr int PLAYER_SHOOT_COUNT = 3;
+inline constexpr int PLAYER_BULLET_DAMAGE = 1;
+inline constexpr int ENEMY_BULLET_DAMAGE = 1;
 inline constexpr float BULLET_SPEED = 1000.0f;
 
 // Effects

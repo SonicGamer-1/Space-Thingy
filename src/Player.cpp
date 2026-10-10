@@ -11,8 +11,8 @@ Entity::Entity(float startX, float startY, SDL_Texture *tex)
 
 void Entity::setSize(float size) {
   s = size;
-  Collider = {(int)(x + 0.1 * size), (int)(y + 0.1 * size),
-              (int)(size * 0.8f), (int)(size * 0.8f)};
+  Collider = {(int)(x + 0.1 * size), (int)(y + 0.1 * size), (int)(size * 0.8f),
+              (int)(size * 0.8f)};
 }
 
 Player::Player(float startX, float startY, SDL_Texture *tex)
@@ -94,8 +94,7 @@ void Enemy::update(float dt, std::vector<EnemyBullet> &b) {
   }
 
   bulletTimer += dt;
-  if (bulletTimer >=
-      2 * BULLET_DELAY / 1000.0f) {
+  if (bulletTimer >= BULLET_DELAY / ENEMY_SHOOT_COUNT / 1000.0f) {
     b.emplace_back(x + s / 2, y + s / 2, dx / d, dy / d);
     bulletTimer = 0;
   }

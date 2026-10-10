@@ -269,9 +269,10 @@ void handleInput(SDL_Event &event, bool &running, Player &player,
     }
   }
 
-  if (!shoot && (currentTick - bulletInit) >
-                   BULLET_DELAY / 3)
+  if (!(shoot) &&
+      (currentTick - bulletInit) > BULLET_DELAY / PLAYER_SHOOT_COUNT) {
     shoot = true;
+  }
 }
 
 void update(float deltaTime, Player &player, std::vector<Enemy> &enemies,
@@ -343,9 +344,7 @@ void update(float deltaTime, Player &player, std::vector<Enemy> &enemies,
   }
 
   enemies.erase(std::remove_if(enemies.begin(), enemies.end(),
-                               [](Enemy &e) {
-                                 return e.src.x > 224;
-                               }),
+                               [](Enemy &e) { return e.src.x > 224; }),
                 enemies.end());
 
   bullets.erase(std::remove_if(bullets.begin(), bullets.end(),
