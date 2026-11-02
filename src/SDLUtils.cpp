@@ -1,10 +1,7 @@
 #include "SDLUtils.h"
-#include "../assets/BulletSounds.h"
-#include "../assets/PlayerSounds.h"
-#include "../assets/Roboto-Regular.h"
-#include "../assets/SpaceShip.h"
-#include "../assets/uiTex.h"
+#include "../assets/assets.h"
 #include <algorithm>
+#include <cmath>
 
 static TTF_Font *loadFontFromMemory(unsigned char *data, unsigned int size,
                                     int fontSize);
@@ -67,14 +64,17 @@ bool initSDL(SDL_Window *&window, SDL_Renderer *&renderer, TTF_Font *&font,
 void cleanupSDL(SDL_Window *window, SDL_Renderer *renderer, TTF_Font *font,
                 SDL_Texture *borderTexture, SDL_Texture *playerTex,
                 SDL_Texture *hpTex, SDL_Texture *bUITex,
-                SDL_Texture *bulletTex[3], Mix_Chunk *shootSFX,
-                Mix_Music *bgm) {
+                SDL_Texture *bulletTex[3], Mix_Chunk *shootSFX, Mix_Music *bgm,
+                SDL_Texture *mainMenuTex, SDL_Texture *mainMenuText) {
   SDL_DestroyTexture(borderTexture);
   SDL_DestroyTexture(playerTex);
   SDL_DestroyTexture(hpTex);
   SDL_DestroyTexture(bUITex);
   for (int i = 0; i < 3; i++)
     SDL_DestroyTexture(bulletTex[i]);
+
+  SDL_DestroyTexture(mainMenuTex);
+  SDL_DestroyTexture(mainMenuText);
 
   SDL_SensorClose(accel);
 
@@ -208,10 +208,40 @@ void loadAudio(Mix_Music *&bgm, Mix_Chunk *&shootSFX, Mix_Chunk *&moveSFX,
   Mix_Volume(engineChannel, idleVol);          // start at idle volume
 }
 
-void loadTextures(SDL_Renderer *renderer, SDL_Texture *&borderTexture,
+void createTextTexture(SDL_Renderer *renderer, TTF_Font *font,
+                       SDL_Texture *&mainMenuText, const char *text) {
+  SDL_Color color = {255, 255, 255, 255}; // white
+  SDL_Surface *textSurface = TTF_RenderText_Blended(font, text, color);
+  if (!textSurface)
+    return;
+
+  mainMenuText = SDL_CreateTextureFromSurface(renderer, textSurface);
+  SDL_FreeSurface(textSurface);
+}
+
+void renderAtCenter(SDL_Renderer *renderer, SDL_Texture *texture, float x,
+                    float y, float w, float h) {
+  SDL_Rect dst;
+  dst.x = (int)(x - w / 2.0f);
+  dst.y = (int)(y - h / 2.0f);
+  dst.w = (int)w;
+  dst.h = (int)h;
+
+  SDL_RenderCopy(renderer, texture, nullptr, &dst);
+}
+
+void loadTextures(SDL_Renderer *renderer, SDL_Texture *&mainMenuTex,
+                  SDL_Texture *&mainMenuText, SDL_Texture *&borderTexture,
                   SDL_Texture *&playerTex, SDL_Texture *&enemyTex,
                   SDL_Texture *&hpTex, SDL_Texture *&bUITex,
                   SDL_Texture *bulletTex[3]) {
+  mainMenuTex = loadTextureFromMemory(renderer, mainMenu, mainMenu_len);
+  mainMenuText = nullptr;
+  createTextTexture(
+      renderer,
+      loadFontFromMemory(Roboto_Regular, Roboto_Regular_len, DEFAULT_FONT_SIZE),
+      mainMenuText, "Interact to Start");
+
   borderTexture = createBorderTexture(renderer, WIN_W, WIN_H, BORDER_WIDTH);
   playerTex = loadTextureFromMemory(renderer, ship, ship_len);
   enemyTex = loadTextureFromMemory(renderer, enemyttt, enemy_len);
@@ -234,9 +264,44 @@ void engineSFX(Player &player, int engineChannel, float &currentVol,
   Mix_Volume(engineChannel, (int)currentVol);
 }
 
+void mainMenu(SDL_Renderer *renderer, SDL_Texture *mainMenuTex,
+              SDL_Texture *mainMenuText, std::vector<Enemy> &enemies,
+              std::vector<EnemyBullet> &enemyBullets, std::vector<Star> &stars,
+              float deltaTime, SDL_Texture *bulletTex[3]) {
+  float wave = sin(SDL_GetTicks() / 500.0f) * 10.0f;
+
+  for (auto &e : enemies)
+    e.update(deltaTime, enemyBullets);
+  for (auto &s : stars)
+    s.update(deltaTime);
+  for (auto &b : enemyBullets)
+    b.update(deltaTime);
+
+  enemyBullets.erase(std::remove_if(enemyBullets.begin(), enemyBullets.end(),
+                                    [](EnemyBullet &b) { return !b.alive; }),
+                     enemyBullets.end());
+
+  SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+  SDL_RenderClear(renderer);
+  SDL_RenderCopy(renderer, mainMenuTex, nullptr, nullptr);
+
+  for (auto &e : enemies)
+    e.render(renderer);
+  SDL_SetRenderDrawColor(renderer, 255, 255, 0, 255);
+  for (auto &s : stars)
+    s.render(renderer);
+  for (auto &b : enemyBullets)
+    b.render(renderer, bulletTex);
+
+  renderAtCenter(renderer, mainMenuText, WIN_W / 2.0f, WIN_H / 1.67f + wave,
+                 WIN_W * 0.5f, WIN_H * 0.1f);
+  SDL_RenderPresent(renderer);
+}
+
 bool initResources(SDL_Window *&window, SDL_Renderer *&renderer,
                    TTF_Font *&font, Mix_Music *&bgm, Mix_Chunk *&shootSFX,
-                   Mix_Chunk *&moveSFX, SDL_Texture *&borderTexture,
+                   Mix_Chunk *&moveSFX, SDL_Texture *&mainMenuTex,
+                   SDL_Texture *&mainMenuText, SDL_Texture *&borderTexture,
                    SDL_Texture *&playerTex, SDL_Texture *&enemyTex,
                    SDL_Texture *&hpTex, SDL_Texture *&bUITex,
                    SDL_Texture *bulletTex[3], int &engineChannel) {
@@ -246,8 +311,8 @@ bool initResources(SDL_Window *&window, SDL_Renderer *&renderer,
 
   loadAudio(bgm, shootSFX, moveSFX, engineChannel);
 
-  loadTextures(renderer, borderTexture, playerTex, enemyTex, hpTex, bUITex,
-               bulletTex);
+  loadTextures(renderer, mainMenuTex, mainMenuText, borderTexture, playerTex,
+               enemyTex, hpTex, bUITex, bulletTex);
 
   return true;
 }
@@ -418,7 +483,7 @@ void reset(Player &player, Player &replay, std::vector<Enemy> &enemies,
     float ex = rand() % (WIN_W - (int)ENEMY_SIZE);
     float ey = rand() % (WIN_H - (int)ENEMY_SIZE);
 
-    enemies.emplace_back(ex, ey, enemyTex, &player);
+    enemies.emplace_back(ex, ey, enemyTex, &player, nullptr);
   }
 }
 }; // namespace Game

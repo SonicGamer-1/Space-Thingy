@@ -1,0 +1,6 @@
+#include "../assets/BulletSounds.h"
+#include "../assets/PlayerSounds.h"
+#include "../assets/Roboto-Regular.h"
+#include "../assets/SpaceShip.h"
+#include "../assets/mainMenuTexture.h"
+#include "../assets/uiTex.h"

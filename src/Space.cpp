@@ -23,6 +23,8 @@ int main(int argc, char *argv[]) {
   SDL_Window *window = nullptr;
   SDL_Renderer *renderer = nullptr;
   TTF_Font *font = nullptr;
+  SDL_Texture *mainMenuTex = nullptr;
+  SDL_Texture *mainMenuText = nullptr;
   Mix_Music *bgm = nullptr;
   Mix_Chunk *shootSFX = nullptr;
   Mix_Chunk *moveSFX = nullptr;
@@ -37,11 +39,12 @@ int main(int argc, char *argv[]) {
   float currentVol;
 
   if (!Game::initResources(window, renderer, font, bgm, shootSFX, moveSFX,
-                           borderTexture, playerTex, enemyTex, hpTex, bUITex,
-                           bulletTex, engineChannel))
+                           mainMenuTex, mainMenuText, borderTexture, playerTex,
+                           enemyTex, hpTex, bUITex, bulletTex, engineChannel))
     return -1;
 
   bool running = true;
+  bool mainMenu = true;
   SDL_Event event;
 
   Player player(WIN_W / 2.0f - PLAYER_SIZE / 2.0f,
@@ -50,11 +53,6 @@ int main(int argc, char *argv[]) {
 
   std::vector<Enemy> enemies;
   enemies.reserve(ENEMY_NUMBER);
-  for (int i = 0; i < ENEMY_NUMBER; i++) {
-    float ex = rand() % (WIN_W - (int)ENEMY_SIZE); // X within screen bounds
-    float ey = rand() % (WIN_H - (int)ENEMY_SIZE); // Y within screen bounds
-    enemies.emplace_back(ex, ey, enemyTex, &player);
-  }
 
   SDL_Color white = {255, 255, 255, 255};
   UI::FPSCounter fpsC(renderer, font, white);
@@ -79,6 +77,48 @@ int main(int argc, char *argv[]) {
 
   int mX, mY;
 
+  for (int i = 0; i < ENEMY_NUMBER; i++) {
+    float ex = rand() % (WIN_W - (int)ENEMY_SIZE); // X within screen bounds
+    float ey = rand() % (WIN_H - (int)ENEMY_SIZE); // Y within screen bounds
+    enemies.emplace_back(ex, ey, enemyTex, &player, shootSFX);
+  }
+
+  // menu loop
+  while (mainMenu) {
+    Uint32 currentTick = SDL_GetTicks();
+    float deltaTime = (currentTick - lastTick) / 1000.0f;
+    lastTick = currentTick;
+
+    while (SDL_PollEvent(&event)) {
+      if (event.type == SDL_QUIT) {
+        mainMenu = false;
+        running = false;
+      }
+
+      SDL_GetMouseState(&mX, &mY);
+      player.x = mX - PLAYER_SIZE / 2.0f;
+      player.y = mY - PLAYER_SIZE / 2.0f;
+
+      if (event.type == SDL_MOUSEBUTTONDOWN || event.type == SDL_KEYDOWN) {
+        mainMenu = false;
+        enemies.clear();
+        enemyBullets.clear();
+
+        player = replay;
+      }
+    }
+
+    Game::mainMenu(renderer, mainMenuTex, mainMenuText, enemies, enemyBullets,
+                   stars, deltaTime, bulletTex);
+  }
+
+  for (int i = 0; i < ENEMY_NUMBER; i++) {
+    float ex = rand() % (WIN_W - (int)ENEMY_SIZE); // X within screen bounds
+    float ey = rand() % (WIN_H - (int)ENEMY_SIZE); // Y within screen bounds
+    enemies.emplace_back(ex, ey, enemyTex, &player, nullptr);
+  }
+
+  // game loop
   while (running) {
     if (player.src.x > 224 || enemies.size() == 0) {
       Game::reset(player, replay, enemies, bullets, enemyBullets, renderer,
@@ -103,7 +143,7 @@ int main(int argc, char *argv[]) {
   }
 
   cleanupSDL(window, renderer, font, borderTexture, playerTex, hpTex, bUITex,
-             bulletTex, shootSFX, bgm);
+             bulletTex, shootSFX, bgm, mainMenuTex, mainMenuText);
   return 0;
 }
 

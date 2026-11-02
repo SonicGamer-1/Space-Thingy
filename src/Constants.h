@@ -37,6 +37,7 @@ inline constexpr int PLAYER_BOUNCES = 1;
 inline constexpr int PLAYER_SHOOT_COUNT = 3;
 inline constexpr int PLAYER_BULLET_DAMAGE = 1;
 
+inline constexpr int ENEMY_HEALTH = 1;
 inline constexpr int ENEMY_BOUNCES = 0;
 inline constexpr int ENEMY_SHOOT_COUNT = 1;
 inline constexpr int ENEMY_BULLET_DAMAGE = 2;

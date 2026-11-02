@@ -20,9 +20,10 @@ Player::Player(float startX, float startY, SDL_Texture *tex)
   setSize(PLAYER_SIZE);
 }
 
-Enemy::Enemy(float startX, float startY, SDL_Texture *tex, Player *player)
-    : Entity(startX, startY, tex), p(player) {
-  hp = 1;
+Enemy::Enemy(float startX, float startY, SDL_Texture *tex, Player *player,
+             Mix_Chunk *sfx)
+    : Entity(startX, startY, tex), p(player), shootSFX(sfx) {
+  hp = ENEMY_HEALTH;
   bulletTimer = 0.0f;
 
   setSize(ENEMY_SIZE);
@@ -97,6 +98,7 @@ void Enemy::update(float dt, std::vector<EnemyBullet> &b) {
   if (bulletTimer >= BULLET_DELAY / ENEMY_SHOOT_COUNT / 1000.0f) {
     b.emplace_back(x + s / 2, y + s / 2, dx / d, dy / d);
     bulletTimer = 0;
+    Mix_PlayChannel(-1, shootSFX, 0);
   }
   if (x <= BORDER_WIDTH)
     vx *= -1;
