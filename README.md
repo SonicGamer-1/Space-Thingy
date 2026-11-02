@@ -2,6 +2,25 @@
 
 A 2D arcade space combat game written in C++17 using the **SDL2** library suite, supporting Windows, Linux, and Android.
 
+## Quick Start
+
+Install the prerequisites for your platform, then build from the project root:
+
+```bash
+# Windows (MinGW)
+mingw32-make windows
+
+# Linux
+make linux
+
+# Android on a Windows host
+mingw32-make android
+```
+
+Desktop executables are written to `bin/`. Android builds produce
+`bin/game.apk` when built through Make. See the platform-specific instructions
+below for dependency setup and running the game.
+
 ## Features
 
 - **Space Physics & Movement**: Smooth player movement with engine sound dynamics.
@@ -21,11 +40,12 @@ Space/
 │   ├── app/
 │   │   ├── src/main/
 │   │   │   ├── cpp/CMakeLists.txt
-│   │   │   ├── java/com/example/myapplication/MainActivity.kt
-│   │   │   ├── assets/
+│   │   │   ├── java/sonic/spacegame/MainActivity.kt
+│   │   │   ├── assets/                 # Android runtime assets
+│   │   │   ├── res/                    # App resources and launcher icons
 │   │   │   └── AndroidManifest.xml
 │   │   └── build.gradle.kts
-│   ├── vendor/
+│   ├── vendor/                         # SDL2 libraries built for Android
 │   │   ├── SDL/
 │   │   ├── SDL_image/
 │   │   ├── SDL_mixer/
@@ -33,30 +53,31 @@ Space/
 │   ├── build.gradle.kts
 │   └── settings.gradle.kts
 ├── assets/
-│   ├── BGM.ogg
-│   ├── BulletSounds.h
-│   ├── PlayerSounds.h
-│   ├── Roboto-Regular.h
-│   ├── SpaceShip.h
-│   └── uiTex.h
-├── bin/
-│   ├── game.exe
-│   └── game
-├── build/
-│   ├── windows/
-│   └── linux/
+│   ├── BGM.ogg                       # Desktop background music
+│   ├── *.h                            # Embedded textures, sounds, and font data
 ├── src/
-│   ├── Bullet.cpp / .h
-│   ├── Constants.h
-│   ├── Player.cpp / .h
-│   ├── SDLUtils.cpp / .h
-│   ├── Space.cpp
-│   └── UI.cpp / .h
-├── gradlew
-├── gradlew.bat
-├── Makefile
+│   ├── Space.cpp                      # Main loop and application setup
+│   ├── Player.cpp / .h                # Player movement and state
+│   ├── Bullet.cpp / .h                # Projectile behavior and collisions
+│   ├── UI.cpp / .h                    # HUD and text rendering
+│   ├── SDLUtils.cpp / .h              # SDL resource helpers
+│   └── Constants.h                    # Shared gameplay and rendering values
+├── Makefile                            # Desktop and Android build orchestration
+├── gradlew / gradlew.bat               # Root wrappers for Android Gradle tasks
 └── README.md
 ```
+
+Generated directories are intentionally omitted from the tree above:
+
+- `build/windows/` and `build/linux/` contain desktop object files and
+  dependency files.
+- `bin/` contains desktop executables and, when created through Make, the
+  copied Android APK.
+- `android/app/build/` contains Gradle and Android build intermediates.
+
+The desktop build includes `src/` and `assets/` directly. The Android CMake
+project uses those same directories and links them with the SDL2 libraries in
+`android/vendor/`.
 
 ## Prerequisites
 
@@ -64,7 +85,7 @@ Space/
 
 1. MinGW-w64 with C++17 support.
 2. GNU Make (`mingw32-make`).
-3. SDL2 development libraries:
+3. SDL2 development libraries installed and available to the compiler/linker:
    - SDL2
    - SDL2_image
    - SDL2_ttf
@@ -106,6 +127,9 @@ Build and run:
 mingw32-make PLATFORM=windows run
 ```
 
+The Windows build writes `bin/game.exe` and requires the SDL2 runtime DLLs to
+be beside the executable or available on `PATH`.
+
 ### Linux
 
 Build:
@@ -120,11 +144,14 @@ Build and run:
 make PLATFORM=linux run
 ```
 
+The Linux build writes `bin/game_linux`. The `run` target launches it from the
+project root.
+
 ### Android
 
 #### Build the Debug APK
 
-From the project root:
+From the project root on Windows:
 
 ```powershell
 # Using the Gradle wrapper
@@ -138,11 +165,12 @@ On Linux:
 
 ```bash
 ./gradlew assembleDebug
-# or:
-make android
 ```
 
-Alternatively, from the `android/` directory:
+The Makefile's Android target is configured for a Windows host. When using
+`mingw32-make android`, the APK is also copied to `bin/game.apk`.
+
+Alternatively, build from the `android/` directory:
 
 ```powershell
 cd android
@@ -177,6 +205,58 @@ make clean
 ```
 
 On Windows, use `mingw32-make clean`.
+
+The `windows` and `linux` Make targets build only on their matching host
+platforms. Use a Windows cross-compiler or WSL when building for another
+desktop platform.
+
+## Developer Workflow
+
+### Make targets
+
+Run Make from the repository root. The default `make` target selects the
+current host platform; use an explicit target when the build type matters.
+
+| Command | Purpose |
+| --- | --- |
+| `make` | Build for the detected host platform |
+| `mingw32-make windows` | Build the Windows executable |
+| `make linux` | Build the Linux executable |
+| `mingw32-make android` | Build and copy the Android debug APK on Windows |
+| `make PLATFORM=<platform> run` | Build and run a desktop target |
+| `make clean` | Remove generated `build/` and `bin/` directories |
+
+After changing compiler flags, SDL configuration, or generated Android
+artifacts, run `make clean` and build again. Desktop object files are stored
+under `build/<platform>/`, so Windows and Linux objects remain separate.
+
+### Source layout
+
+- `src/Space.cpp` contains the main game loop and application setup.
+- `src/Player.cpp` and `src/Bullet.cpp` implement player and projectile
+  behavior.
+- `src/SDLUtils.cpp` contains SDL resource and rendering helpers.
+- `src/UI.cpp` handles the in-game HUD and text rendering.
+- `src/Constants.h` centralizes gameplay, window, audio, and rendering values.
+- `assets/` contains external music and generated C++ asset headers.
+- `android/app/src/main/cpp/CMakeLists.txt` builds the same `src/` files as an
+  Android shared library and links the SDL2 vendor libraries.
+
+Gameplay values such as player health, enemy count, bullet damage, movement
+speed, and the logical resolution can be tuned in `src/Constants.h`.
+
+### Android development
+
+The Android project uses the Gradle wrapper, CMake 3.22.1, and C++17. SDL2,
+SDL2_image, SDL2_mixer, and SDL2_ttf are built from the copies in
+`android/vendor/`. The native build references the repository-level `src/` and
+`assets/` directories, so changes to desktop gameplay code are shared with the
+Android build.
+
+For iterative Android development, open `android/` in Android Studio, select a
+connected API 31+ device or emulator, and run the `app` configuration. From a
+terminal, use `.\gradlew installDebug` on Windows or `./gradlew installDebug`
+on Linux.
 
 ## Gameplay
 
