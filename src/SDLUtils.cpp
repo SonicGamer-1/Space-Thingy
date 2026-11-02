@@ -29,11 +29,16 @@ bool initSDL(SDL_Window *&window, SDL_Renderer *&renderer, TTF_Font *&font,
   if (!font)
     return false;
 
+  SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
   window = SDL_CreateWindow("Space Thingy", SDL_WINDOWPOS_CENTERED,
                             SDL_WINDOWPOS_CENTERED, WIN_W, WIN_H,
                             SDL_WINDOW_RESIZABLE | SDL_WINDOW_SHOWN);
   if (!window)
     return false;
+
+#ifdef __ANDROID__
+  SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN);
+#endif
 
   SDL_SetHint(SDL_HINT_RENDER_VSYNC, "0");
   SDL_SetHint(SDL_HINT_RENDER_SCALE_QUALITY, "nearest");

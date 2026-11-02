@@ -18,6 +18,7 @@ int main(int argc, char *argv[]) {
   (void)argv;
 
   SDL_SetHint(SDL_HINT_WINDOWS_DPI_AWARENESS, "permonitorv2");
+  SDL_SetHint(SDL_HINT_ORIENTATIONS, "LandscapeLeft");
   srand(time(nullptr));
   SDL_Window *window = nullptr;
   SDL_Renderer *renderer = nullptr;

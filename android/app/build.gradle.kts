@@ -18,8 +18,23 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         externalNativeBuild {
             cmake {
+                arguments += listOf(
+                    "-DANDROID_STL=c++_shared"
+                )
                 cppFlags += "-std=c++17"
             }
+        }
+    }
+
+    sourceSets {
+        getByName("main") {
+            java.srcDirs(
+                "src/main/java",
+                "../vendor/SDL/android-project/app/src/main/java"
+            )
+            assets.srcDirs(
+                "src/main/assets"
+            )
         }
     }
 
@@ -31,8 +46,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     externalNativeBuild {
         cmake {
@@ -41,7 +56,7 @@ android {
         }
     }
     buildFeatures {
-        viewBinding = true
+        viewBinding = false
     }
 }
 

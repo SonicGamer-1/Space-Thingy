@@ -2,6 +2,17 @@
 build/
 bin/
 
+# Android build and generated files
+.gradle/
+.cxx/
+*.apk
+*.aab
+*.ap_
+local.properties
+.externalNativeBuild/
+captures/
+*.iml
+
 # Compiled Object & Executable files
 *.o
 *.obj
@@ -39,3 +50,5 @@ desktop.ini
 *~
 *.swp
 *.txt
+!CMakeLists.txt
+!**/CMakeLists.txt

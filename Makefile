@@ -23,8 +23,10 @@ SDL_CFLAGS := $(shell pkg-config --cflags sdl2 SDL2_image SDL2_ttf SDL2_mixer)
 SDL_LIBS := $(shell pkg-config --libs sdl2 SDL2_image SDL2_ttf SDL2_mixer)
 MKDIR = mkdir -p "$@"
 RUN = ./$(TARGET)
+else ifeq ($(PLATFORM),android)
+# Delegated to Gradle
 else
-$(error Unsupported PLATFORM '$(PLATFORM)'; use PLATFORM=windows or PLATFORM=linux)
+$(error Unsupported PLATFORM '$(PLATFORM)'; use PLATFORM=windows, PLATFORM=linux, or PLATFORM=android)
 endif
 
 BUILD_DIR := build/$(PLATFORM)
@@ -32,13 +34,24 @@ TARGET := bin/game$(TARGET_EXT)
 SOURCES := $(wildcard src/*.cpp)
 OBJECTS := $(patsubst src/%.cpp,$(BUILD_DIR)/%.o,$(SOURCES))
 
+ifeq ($(PLATFORM),android)
+all: android
+else
 all: $(TARGET)
+endif
 
 windows:
 	$(MAKE) PLATFORM=windows all
 
 linux:
 	$(MAKE) PLATFORM=linux all
+
+android:
+ifeq ($(OS),Windows_NT)
+	cmd /c "cd android && gradlew.bat assembleDebug"
+else
+	cd android && ./gradlew assembleDebug
+endif
 
 $(TARGET): $(OBJECTS) | bin
 	$(CXX) $^ -o $@ $(LDFLAGS) $(SDL_LIBS)
@@ -63,4 +76,4 @@ else
 	rm -rf build bin
 endif
 
-.PHONY: all windows linux run clean
+.PHONY: all windows linux android run clean
